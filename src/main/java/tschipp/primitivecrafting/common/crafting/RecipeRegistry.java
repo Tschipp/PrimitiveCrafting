@@ -9,13 +9,13 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.init.Items;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.oredict.OreIngredient;
 import tschipp.primitivecrafting.common.config.PrimitiveConfig;
 
 public class RecipeRegistry
@@ -66,7 +66,6 @@ public class RecipeRegistry
 		return new PrimitiveIngredient(Ingredient.fromStacks(stack), stack.getCount());
 	}
 
-	
 	public static List<IPrimitiveRecipe> getValidRecipes(ItemStack a, ItemStack b)
 	{
 		List<IPrimitiveRecipe> valids = new ArrayList<IPrimitiveRecipe>();
@@ -95,9 +94,59 @@ public class RecipeRegistry
 			for (IRecipe recipe : ForgeRegistries.RECIPES)
 			{
 				NonNullList<Ingredient> ingredients = recipe.getIngredients();
+
 				if (ingredients.size() == 2)
 				{
-					registerRecipe(ingredients.get(0), ingredients.get(1), recipe.getRecipeOutput());
+					if (!recipe.getRecipeOutput().isEmpty())
+						registerRecipe(ingredients.get(0), ingredients.get(1), recipe.getRecipeOutput());
+				} else if (ingredients.size() > 1)
+				{
+					if (PrimitiveConfig.Settings.recipesWithMultipleIngredients)
+					{
+						List<PrimitiveIngredient> sameIngredients = new ArrayList<PrimitiveIngredient>();
+						for (Ingredient i : ingredients)
+						{
+							if (i.getMatchingStacks().length == 0)
+								continue;
+
+							if (sameIngredients.isEmpty())
+							{
+								sameIngredients.add(new PrimitiveIngredient(i, 1));
+								continue;
+							}
+
+							boolean newIngredient = true;
+
+							for (int k = 0; k < sameIngredients.size(); k++)
+							{
+								PrimitiveIngredient pI = sameIngredients.get(k);
+								if (areIngredientsEqual(pI.ingredient, i))
+								{
+									pI.count++;
+									newIngredient = false;
+									break;
+								}
+							}
+
+							if (newIngredient)
+								sameIngredients.add(new PrimitiveIngredient(i, 1));
+						}
+
+						if (sameIngredients.size() == 2)
+						{
+							if (!recipe.getRecipeOutput().isEmpty())
+								registerRecipe(sameIngredients.get(0), sameIngredients.get(1), recipe.getRecipeOutput());
+						} else if (sameIngredients.size() == 1)
+						{
+							int amount1 = sameIngredients.get(0).count / 2;
+							int amount2 = sameIngredients.get(0).count - amount1;
+
+							if (!recipe.getRecipeOutput().isEmpty())
+								registerRecipe(new PrimitiveIngredient(sameIngredients.get(0).ingredient, amount1), new PrimitiveIngredient(sameIngredients.get(0).ingredient, amount2), recipe.getRecipeOutput());
+
+						}
+					}
+
 				}
 			}
 		}
@@ -106,5 +155,24 @@ public class RecipeRegistry
 	public static List<IPrimitiveRecipe> getRecipes()
 	{
 		return new ArrayList<IPrimitiveRecipe>(registry);
+	}
+
+	public static boolean areIngredientsEqual(Ingredient a, Ingredient b)
+	{
+		ItemStack[] thisStack = a.getMatchingStacks();
+		ItemStack[] otherStack = b.getMatchingStacks();
+
+		boolean equal = true;
+
+		if (thisStack.length != otherStack.length)
+			return false;
+
+		for (int i = 0; i < thisStack.length; i++)
+		{
+			if (!PrimitiveRecipe.areStacksEqual(thisStack[i], otherStack[i]))
+				equal = false;
+		}
+
+		return equal;
 	}
 }

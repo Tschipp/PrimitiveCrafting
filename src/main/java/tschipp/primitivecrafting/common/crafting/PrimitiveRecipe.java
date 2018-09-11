@@ -44,8 +44,8 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 	public boolean isValid(ItemStack a, ItemStack b)
 	{
 		boolean bool = (this.a.test(a) && this.b.test(b) && this.a.count <= a.getCount() && this.b.count <= b.getCount()) || (this.a.test(b) && this.b.test(a) && this.a.count <= b.getCount() && this.b.count <= a.getCount());
-	
-		if(bool)
+
+		if (bool)
 			return true;
 		return false;
 	}
@@ -62,36 +62,39 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		ItemStack newA = sort(a, b, true);
 		ItemStack newB = sort(a, b, false);
 
-		if (newA.getItem().hasContainerItem(newA))
+		if (newA != null && newB != null && !newA.isEmpty() && !newB.isEmpty())
 		{
-			ItemStack container = newA.getItem().getContainerItem(newA);
-			container.setCount(container.getCount() * decreaseA);
-			if (!areStacksEqual(newA, container))
+			if (newA.getItem().hasContainerItem(newA))
 			{
-				addItem(player, container);
+				ItemStack container = newA.getItem().getContainerItem(newA);
+				container.setCount(container.getCount() * decreaseA);
+				if (!areStacksEqual(newA, container))
+				{
+					addItem(player, container);
+					newA.shrink(decreaseA);
+				} else
+					aContainer = true;
+			}
+
+			if (newB.getItem().hasContainerItem(newB))
+			{
+				ItemStack container = newB.getItem().getContainerItem(newB);
+				container.setCount(container.getCount() * decreaseB);
+				if (!areStacksEqual(newB, container))
+				{
+					addItem(player, container);
+					newB.shrink(decreaseB);
+				} else
+					bContainer = true;
+			}
+
+			if (!aContainer)
 				newA.shrink(decreaseA);
-			} else
-				aContainer = true;
-		}
-
-		if (newB.getItem().hasContainerItem(newB))
-		{
-			ItemStack container = newB.getItem().getContainerItem(newB);
-			container.setCount(container.getCount() * decreaseB);
-			if (!areStacksEqual(newB, container))
-			{
-				addItem(player, container);
+			if (!bContainer)
 				newB.shrink(decreaseB);
-			} else
-				bContainer = true;
+
+			addItem(player, getResult());
 		}
-
-		if (!aContainer)
-			newA.shrink(decreaseA);
-		if (!bContainer)
-			newB.shrink(decreaseB);
-
-		addItem(player, getResult());
 	}
 
 	@Override
@@ -114,15 +117,15 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 			else
 				return b;
 		}
-		
-		if(this.getB().test(a))
+
+		if (this.getB().test(a))
 		{
-			if(getA)
+			if (getA)
 				return b;
 			else
 				return a;
 		}
-		
+
 		return null;
 	}
 

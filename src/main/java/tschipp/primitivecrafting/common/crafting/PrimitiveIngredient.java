@@ -1,5 +1,7 @@
 package tschipp.primitivecrafting.common.crafting;
 
+import java.util.ArrayList;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
@@ -13,6 +15,7 @@ public class PrimitiveIngredient
 	public PrimitiveIngredient(Ingredient ingredient, int count)
 	{
 		this.ingredient = ingredient;
+
 		this.count = count;
 	}
 
