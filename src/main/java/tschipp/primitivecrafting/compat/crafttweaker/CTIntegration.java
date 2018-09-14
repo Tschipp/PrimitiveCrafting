@@ -18,7 +18,7 @@ public class CTIntegration
 {
 
 	@ZenMethod
-	public static void addRecipe(IIngredient a, IIngredient b, IItemStack output)
+	public static void addRecipe(IItemStack output, IIngredient a, IIngredient b)
 	{
 		if (a != null && b != null && output != null)
 		{
@@ -43,7 +43,7 @@ public class CTIntegration
 	}
 
 	@ZenMethod
-	public static void removeRecipe(IIngredient a, IIngredient b, IItemStack output)
+	public static void removeRecipe(IItemStack output, IIngredient a, IIngredient b)
 	{
 		if (a != null && b != null && output != null)
 		{

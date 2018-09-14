@@ -23,6 +23,14 @@ public class PrimitiveConfig
 	@Config.Comment("General Mod Settings")
 	public static Configs.Settings Settings = new Configs.Settings();
 	
+	@Config.LangKey(PrimitiveCrafting.MODID)
+	@Config.Comment("Blacklist for Recipes")
+	public static Configs.Blacklist Blacklist = new Configs.Blacklist();
+	
+	@Config.LangKey(PrimitiveCrafting.MODID)
+	@Config.Comment("Whitelist for Recipes")
+	public static Configs.WhiteList Whitelist = new Configs.WhiteList();
+	
 	@Mod.EventBusSubscriber
 	public static class EventHandler
 	{

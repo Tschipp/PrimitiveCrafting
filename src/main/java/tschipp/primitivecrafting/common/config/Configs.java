@@ -17,6 +17,29 @@ public class Configs {
 		
 		@Comment("Whether the inventory crafting is disabled.")
 		public boolean disableInventoryCrafting = false;
+		
+		@Config.RequiresMcRestart
+		@Comment("Whether the whitelist should be used instead of the blacklist")
+		public boolean useWhitelist = false;
+	}
+	
+	public static class WhiteList
+	{
+		@Config.RequiresMcRestart()
+		@Comment("Recipes that will be transformed to primitive recipes (useWhitelist must be true!)")
+		public String[] allowedRecipes=new String[]
+				{
+				};
+	}
+	
+	public static class Blacklist
+	{
+		@Config.RequiresMcRestart()
+		@Comment("Recipes that will not be transformed into primitive recipes")
+    	public String[] forbiddenRecipes = new String[]
+    			{
+    			};
+		
 	}
 
 }

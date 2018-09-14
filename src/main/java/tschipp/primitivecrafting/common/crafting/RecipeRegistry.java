@@ -17,6 +17,7 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import tschipp.primitivecrafting.common.config.PrimitiveConfig;
+import tschipp.primitivecrafting.common.helper.ListHandler;
 
 public class RecipeRegistry
 {
@@ -93,6 +94,9 @@ public class RecipeRegistry
 		{
 			for (IRecipe recipe : ForgeRegistries.RECIPES)
 			{
+				if(PrimitiveConfig.Settings.useWhitelist ? !ListHandler.isAllowed(recipe) : ListHandler.isForbidden(recipe))
+					continue;
+				
 				NonNullList<Ingredient> ingredients = recipe.getIngredients();
 
 				if (ingredients.size() == 2)

@@ -50,15 +50,15 @@ public class RenderEvents
 
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
-	public void onGuiLeftClick(GuiScreenEvent.MouseInputEvent.Pre event)
+	public void onGuiClick(GuiScreenEvent.MouseInputEvent.Pre event)
 	{
 		GuiScreen gui = event.getGui();
 
 		if (PrimitiveKeybinds.showRecipe.getKeyCode() > 0 && gui instanceof GuiContainer && Keyboard.isKeyDown(PrimitiveKeybinds.showRecipe.getKeyCode()) && Mouse.getEventButton() == 0)
 		{
 			GuiContainer container = (GuiContainer) gui;
-			EntityPlayer player = Minecraft.getMinecraft().player;
 			Slot slotBelow = container.getSlotUnderMouse();
+			EntityPlayer player = Minecraft.getMinecraft().player;
 			ItemStack held = player.inventory.getItemStack();
 
 			if (slotBelow != null && slotBelow.getHasStack() && !slotBelow.getStack().isEmpty() && slotBelow.inventory == player.inventory && !held.isEmpty())
@@ -155,14 +155,14 @@ public class RenderEvents
 					tooltip.add(s);
 
 					GlStateManager.pushMatrix();
-					GuiUtils.drawHoveringText(held, tooltip, event.getMouseX(), event.getMouseY(), gui.width, gui.height, -1, minecraft.fontRenderer);
+					GuiUtils.drawHoveringText(ItemStack.EMPTY, tooltip, event.getMouseX(), event.getMouseY(), gui.width, gui.height, -1, minecraft.fontRenderer);
 
 					if (recipes.size() > 1)
 					{
 						tooltip.clear();
 						tooltip.add(I18n.translateToLocal("primitivecrafting.moreoptions"));
 						tooltip.add(String.format(I18n.translateToLocal("primitivecrafting.cycle"), TextFormatting.GREEN + PrimitiveKeybinds.cycleRecipes.getDisplayName() + TextFormatting.RESET));
-						GuiUtils.drawHoveringText(held, tooltip, event.getMouseX(), event.getMouseY() + 30, gui.width, gui.height, -1, minecraft.fontRenderer);
+						GuiUtils.drawHoveringText(ItemStack.EMPTY, tooltip, event.getMouseX(), event.getMouseY() + 30, gui.width, gui.height, -1, minecraft.fontRenderer);
 
 					}
 
