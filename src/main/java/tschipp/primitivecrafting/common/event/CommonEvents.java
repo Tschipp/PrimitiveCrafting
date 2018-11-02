@@ -13,7 +13,7 @@ public class CommonEvents
 {
 
 	
-	@SubscribeEvent(priority = EventPriority.LOWEST)
+	@SubscribeEvent(priority = EventPriority.LOW)
 	public void registerRecipes(RegistryEvent.Register<IRecipe> event)
 	{
 		ListHandler.initFilters();

@@ -19,10 +19,13 @@ public class PrimitiveCraftingWrapper extends BlankRecipeWrapper
 	protected List<List<ItemStack>> inputs;
 	protected ItemStack output;
 	
+	public String gamestage = "";
+	
 	public PrimitiveCraftingWrapper(IPrimitiveRecipe recipe)
 	{
 		inputs = new ArrayList<List<ItemStack>>();
 		
+		gamestage = recipe.getTier();
 		
 		ItemStack[] iA = recipe.getA().ingredient.getMatchingStacks().clone();
 		for(int i = 0; i < iA.length; i++)

@@ -4,6 +4,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.util.ResourceLocation;
 import tschipp.primitivecrafting.PrimitiveCrafting;
 import tschipp.primitivecrafting.network.AddItem;
 
@@ -14,12 +15,18 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 	private PrimitiveIngredient a;
 	private PrimitiveIngredient b;
 
-	public PrimitiveRecipe(ItemStack result, PrimitiveIngredient a, PrimitiveIngredient b)
+	private String tier = "";
+	
+	private ResourceLocation registryName;
+	
+	public PrimitiveRecipe(ItemStack result, PrimitiveIngredient a, PrimitiveIngredient b, ResourceLocation loc)
 	{
 		this.result = result.copy();
 
 		this.a = a;
 		this.b = b;
+		
+		this.registryName = loc;
 	}
 
 	@Override
@@ -45,58 +52,63 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 	{
 		boolean bool = (this.a.test(a) && this.b.test(b) && this.a.count <= a.getCount() && this.b.count <= b.getCount()) || (this.a.test(b) && this.b.test(a) && this.a.count <= b.getCount() && this.b.count <= a.getCount());
 
-		if (bool)
-			return true;
-		return false;
+		return bool;
 	}
 
 	@Override
-	public void craft(ItemStack a, ItemStack b, EntityPlayer player)
+	public void craft(ItemStack a, ItemStack b, EntityPlayer player, ItemStack hoverStack, int slot)
 	{
-		int decreaseA = getA().count;
-		int decreaseB = getB().count;
-
-		boolean aContainer = false;
-		boolean bContainer = false;
-
 		ItemStack newA = sort(a, b, true);
 		ItemStack newB = sort(a, b, false);
 
 		if (newA != null && newB != null && !newA.isEmpty() && !newB.isEmpty())
 		{
-			if (newA.getItem().hasContainerItem(newA))
-			{
-				ItemStack container = newA.getItem().getContainerItem(newA);
-				container.setCount(container.getCount() * decreaseA);
-				if (!areStacksEqual(newA, container))
-				{
-					addItem(player, container);
-					newA.shrink(decreaseA);
-				} else
-					aContainer = true;
-			}
+//			if (newA.getItem().hasContainerItem(newA))
+//			{
+//				ItemStack container = newA.getItem().getContainerItem(newA);
+//				container.setCount(container.getCount() * decreaseA);
+//				if (!areStacksEqual(newA, container))
+//				{
+//					addItem(player, container);
+//					newA.shrink(decreaseA);
+//				} else
+//					aContainer = true;
+//			}
+//
+//			if (newB.getItem().hasContainerItem(newB))
+//			{
+//				ItemStack container = newB.getItem().getContainerItem(newB);
+//				container.setCount(container.getCount() * decreaseB);
+//				if (!areStacksEqual(newB, container))
+//				{
+//					addItem(player, container);
+//					newB.shrink(decreaseB);
+//				} else
+//					bContainer = true;
+//			}
+//
+//			if (!aContainer)
+//				newA.shrink(decreaseA);
+//			if (!bContainer)
+//				newB.shrink(decreaseB);
 
-			if (newB.getItem().hasContainerItem(newB))
-			{
-				ItemStack container = newB.getItem().getContainerItem(newB);
-				container.setCount(container.getCount() * decreaseB);
-				if (!areStacksEqual(newB, container))
-				{
-					addItem(player, container);
-					newB.shrink(decreaseB);
-				} else
-					bContainer = true;
-			}
-
-			if (!aContainer)
-				newA.shrink(decreaseA);
-			if (!bContainer)
-				newB.shrink(decreaseB);
-
+			
+			
+			
+			getCraftingResult(newA, newB, player, PrimitiveRecipe.areStacksEqual(newA, hoverStack) ? true : false, slot);
+			
 			addItem(player, getResult());
 		}
 	}
 
+	
+	@Override
+	public void getCraftingResult(ItemStack a, ItemStack b, EntityPlayer player, boolean isAHoverStack, int slot)
+	{
+		this.getA().getTransformForStack(a).transformStack(a, player, isAHoverStack, slot);
+		this.getB().getTransformForStack(b).transformStack(b, player, !isAHoverStack, slot);
+	}
+	
 	@Override
 	public int hashCode()
 	{
@@ -195,5 +207,25 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 			PrimitiveCrafting.network.sendToServer(new AddItem(stack));
 		}
 	}
+
+	@Override
+	public String getTier()
+	{
+		return tier;
+	}
+
+	@Override
+	public void setTier(String s)
+	{
+		this.tier = s;
+	}
+
+	@Override
+	public ResourceLocation getRegistryName()
+	{
+		return registryName;
+	}
+
+	
 
 }

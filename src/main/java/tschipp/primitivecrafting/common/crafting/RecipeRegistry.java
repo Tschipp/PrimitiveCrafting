@@ -1,5 +1,6 @@
 package tschipp.primitivecrafting.common.crafting;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +16,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import tschipp.primitivecrafting.common.config.PrimitiveConfig;
 import tschipp.primitivecrafting.common.helper.ListHandler;
 
@@ -27,25 +31,24 @@ public class RecipeRegistry
 	public static void registerRecipe(IPrimitiveRecipe recipe)
 	{
 		registry.add(recipe);
-
 		hashRegistry.put(recipe.hashCode(), recipe);
 	}
 
-	public static void registerRecipe(ItemStack a, ItemStack b, ItemStack result)
+	public static void registerRecipe(ItemStack a, ItemStack b, ItemStack result, ResourceLocation loc)
 	{
-		IPrimitiveRecipe recipe = new PrimitiveRecipe(result, get(a), get(b));
+		IPrimitiveRecipe recipe = new PrimitiveRecipe(result, get(a), get(b), loc);
 		registerRecipe(recipe);
 	}
 
-	public static void registerRecipe(Ingredient a, Ingredient b, ItemStack result)
+	public static void registerRecipe(Ingredient a, Ingredient b, ItemStack result, ResourceLocation loc)
 	{
-		IPrimitiveRecipe recipe = new PrimitiveRecipe(result, new PrimitiveIngredient(a, 1), new PrimitiveIngredient(b, 1));
+		IPrimitiveRecipe recipe = new PrimitiveRecipe(result, new PrimitiveIngredient(a, 1), new PrimitiveIngredient(b, 1), loc);
 		registerRecipe(recipe);
 	}
 
-	public static void registerRecipe(PrimitiveIngredient a, PrimitiveIngredient b, ItemStack result)
+	public static void registerRecipe(PrimitiveIngredient a, PrimitiveIngredient b, ItemStack result, ResourceLocation loc)
 	{
-		IPrimitiveRecipe recipe = new PrimitiveRecipe(result, a, b);
+		IPrimitiveRecipe recipe = new PrimitiveRecipe(result, a, b, loc);
 		registerRecipe(recipe);
 	}
 
@@ -65,6 +68,11 @@ public class RecipeRegistry
 	public static PrimitiveIngredient get(ItemStack stack)
 	{
 		return new PrimitiveIngredient(Ingredient.fromStacks(stack), stack.getCount());
+	}
+
+	public static PrimitiveIngredient get(Ingredient ing)
+	{
+		return new PrimitiveIngredient(ing, 1);
 	}
 
 	public static List<IPrimitiveRecipe> getValidRecipes(ItemStack a, ItemStack b)
@@ -94,15 +102,20 @@ public class RecipeRegistry
 		{
 			for (IRecipe recipe : ForgeRegistries.RECIPES)
 			{
-				if(PrimitiveConfig.Settings.useWhitelist ? !ListHandler.isAllowed(recipe) : ListHandler.isForbidden(recipe))
+				if (PrimitiveConfig.Settings.useWhitelist ? !ListHandler.isAllowed(recipe) : ListHandler.isForbidden(recipe))
 					continue;
-				
+
 				NonNullList<Ingredient> ingredients = recipe.getIngredients();
 
+//				ItemStack output = recipe.getRecipeOutput();
+//				if(!output.isEmpty() && output.getItem() == Item.getByNameOrId("minecraft:bed") && output.getItemDamage() == 0)
+//					System.out.println("OOF");
+				
+				
 				if (ingredients.size() == 2)
 				{
 					if (!recipe.getRecipeOutput().isEmpty())
-						registerRecipe(ingredients.get(0), ingredients.get(1), recipe.getRecipeOutput());
+						registerRecipe(ingredients.get(0), ingredients.get(1), recipe.getRecipeOutput(), recipe.getRegistryName());
 				} else if (ingredients.size() > 1)
 				{
 					if (PrimitiveConfig.Settings.recipesWithMultipleIngredients)
@@ -115,7 +128,7 @@ public class RecipeRegistry
 
 							if (sameIngredients.isEmpty())
 							{
-								sameIngredients.add(new PrimitiveIngredient(i, 1));
+								sameIngredients.add(new PrimitiveIngredient(i, 1, false));
 								continue;
 							}
 
@@ -136,18 +149,20 @@ public class RecipeRegistry
 								sameIngredients.add(new PrimitiveIngredient(i, 1));
 						}
 
+						for (PrimitiveIngredient ing : sameIngredients)
+							ing.initTransformData();
+
 						if (sameIngredients.size() == 2)
 						{
 							if (!recipe.getRecipeOutput().isEmpty())
-								registerRecipe(sameIngredients.get(0), sameIngredients.get(1), recipe.getRecipeOutput());
+								registerRecipe(sameIngredients.get(0), sameIngredients.get(1), recipe.getRecipeOutput(), recipe.getRegistryName());
 						} else if (sameIngredients.size() == 1)
 						{
 							int amount1 = sameIngredients.get(0).count / 2;
 							int amount2 = sameIngredients.get(0).count - amount1;
 
 							if (!recipe.getRecipeOutput().isEmpty())
-								registerRecipe(new PrimitiveIngredient(sameIngredients.get(0).ingredient, amount1), new PrimitiveIngredient(sameIngredients.get(0).ingredient, amount2), recipe.getRecipeOutput());
-
+								registerRecipe(new PrimitiveIngredient(sameIngredients.get(0).ingredient, amount1), new PrimitiveIngredient(sameIngredients.get(0).ingredient, amount2), recipe.getRecipeOutput(), recipe.getRegistryName());
 						}
 					}
 
@@ -178,5 +193,48 @@ public class RecipeRegistry
 		}
 
 		return equal;
+	}
+
+	public static String getTierIfStaged(IRecipe recipe)
+	{
+
+		if (Loader.isModLoaded("recipestages"))
+		{
+			try
+			{
+				Class clazz = Class.forName("com.blamejared.recipestages.recipes.RecipeStage");
+
+				if (clazz.isInstance(recipe))
+				{
+					Method getTier = ReflectionHelper.findMethod(clazz, "getTier", null);
+					String tier = (String) getTier.invoke(recipe);
+
+					return tier;
+				}
+
+			} catch (Exception e)
+			{
+				return "";
+			}
+		}
+
+		return "";
+	}
+
+	public static void initStagedRecipes()
+	{
+		if (Loader.isModLoaded("recipestages"))
+		{
+			for (IPrimitiveRecipe r : registry)
+			{
+				IRecipe parent = ForgeRegistries.RECIPES.getValue(r.getRegistryName());
+				if (parent == null)
+					continue;
+				
+				String tier = getTierIfStaged(parent);
+				
+				r.setTier(tier);
+			}
+		}
 	}
 }
