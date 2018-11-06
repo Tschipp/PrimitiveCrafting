@@ -1,14 +1,12 @@
 package tschipp.primitivecrafting.compat.gamestages;
 
-import java.util.List;
-
 import net.darkhax.gamestages.event.StagesSyncedEvent;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import tschipp.primitivecrafting.client.render.event.RenderEvents;
+import tschipp.primitivecrafting.common.helper.StageHelper;
 import tschipp.primitivecrafting.compat.jei.JEIIntegration;
 import tschipp.primitivecrafting.compat.jei.crafting.PrimitiveCraftingWrapper;
 
@@ -32,7 +30,7 @@ public class GamestageEvents
 			for (PrimitiveCraftingWrapper wrap : JEIIntegration.allRecipes)
 			{
 
-				if (!RenderEvents.hasStage(player, wrap.gamestage))
+				if (!StageHelper.hasStage(player, wrap.gamestage))
 					JEIIntegration.reg.hideRecipe(wrap, "primitive_crafting");
 				else
 					JEIIntegration.reg.unhideRecipe(wrap, "primitive_crafting");

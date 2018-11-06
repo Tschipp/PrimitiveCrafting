@@ -10,8 +10,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
@@ -22,6 +21,7 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import tschipp.primitivecrafting.common.config.PrimitiveConfig;
 import tschipp.primitivecrafting.common.helper.ListHandler;
+import tschipp.primitivecrafting.common.helper.StageHelper;
 
 public class RecipeRegistry
 {
@@ -75,13 +75,13 @@ public class RecipeRegistry
 		return new PrimitiveIngredient(ing, 1);
 	}
 
-	public static List<IPrimitiveRecipe> getValidRecipes(ItemStack a, ItemStack b)
+	public static List<IPrimitiveRecipe> getValidRecipes(ItemStack a, ItemStack b, EntityPlayer player)
 	{
 		List<IPrimitiveRecipe> valids = new ArrayList<IPrimitiveRecipe>();
 
 		for (IPrimitiveRecipe r : registry)
 		{
-			if (r.isValid(a, b))
+			if (r.isValid(a, b) && StageHelper.hasStage(player, r.getTier()))
 				valids.add(r);
 		}
 
