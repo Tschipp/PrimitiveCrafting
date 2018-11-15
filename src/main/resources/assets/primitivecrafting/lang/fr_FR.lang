@@ -1,0 +1,8 @@
+primitivecrafting.moreoptions=Plus d'options de fabrication sont disponibles.
+primitivecrafting.cycle=Appuyer sur %s pour faire défiler les options.
+
+primitivecrafting.title=Primitive Crafting
+
+key.primitive.showrecipe.desc=Afficher les recettes valides
+key.primitive.cyclerecipes.desc=Faire défiler les recettes valides
+key.primitive.craftstack.desc=Fabriquer une pile entière
