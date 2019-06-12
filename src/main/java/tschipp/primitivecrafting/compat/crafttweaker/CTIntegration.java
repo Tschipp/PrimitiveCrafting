@@ -87,8 +87,6 @@ public class CTIntegration
 				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), mcstack);
 				if(equal)
 					recipe.setTier(gamestage);
-				
-				System.out.println("OOf");
 			}
 		}
 	}

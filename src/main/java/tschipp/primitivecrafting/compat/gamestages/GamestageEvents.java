@@ -32,12 +32,6 @@ public class GamestageEvents
 
 			for (PrimitiveCraftingWrapper wrap : JEIIntegration.allRecipes)
 			{
-				String name = wrap.recipe.getRegistryName().toString();
-				if(name.equals("minecraft:stick"))
-					System.out.println("Yeee");
-				
-				IPrimitiveRecipe rec = RecipeRegistry.getRecipe(new ResourceLocation("minecraft:stick"));
-				
 				if (!StageHelper.hasStage(player, wrap.getGamestage()))
 					JEIIntegration.reg.hideRecipe(wrap, "primitive_crafting");
 				else

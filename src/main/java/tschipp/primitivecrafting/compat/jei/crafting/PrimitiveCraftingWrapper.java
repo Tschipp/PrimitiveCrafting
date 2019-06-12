@@ -19,7 +19,7 @@ public class PrimitiveCraftingWrapper extends BlankRecipeWrapper
 	protected List<List<ItemStack>> inputs;
 	protected ItemStack output;
 		
-	public IPrimitiveRecipe recipe;
+	private IPrimitiveRecipe recipe;
 	
 	public PrimitiveCraftingWrapper(IPrimitiveRecipe recipe)
 	{
