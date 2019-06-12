@@ -62,39 +62,7 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		ItemStack newB = sort(a, b, false);
 
 		if (newA != null && newB != null && !newA.isEmpty() && !newB.isEmpty())
-		{
-//			if (newA.getItem().hasContainerItem(newA))
-//			{
-//				ItemStack container = newA.getItem().getContainerItem(newA);
-//				container.setCount(container.getCount() * decreaseA);
-//				if (!areStacksEqual(newA, container))
-//				{
-//					addItem(player, container);
-//					newA.shrink(decreaseA);
-//				} else
-//					aContainer = true;
-//			}
-//
-//			if (newB.getItem().hasContainerItem(newB))
-//			{
-//				ItemStack container = newB.getItem().getContainerItem(newB);
-//				container.setCount(container.getCount() * decreaseB);
-//				if (!areStacksEqual(newB, container))
-//				{
-//					addItem(player, container);
-//					newB.shrink(decreaseB);
-//				} else
-//					bContainer = true;
-//			}
-//
-//			if (!aContainer)
-//				newA.shrink(decreaseA);
-//			if (!bContainer)
-//				newB.shrink(decreaseB);
-
-			
-			
-			
+		{	
 			getCraftingResult(newA, newB, player, PrimitiveRecipe.areStacksEqual(newA, hoverStack) ? true : false, slot);
 			
 			addItem(player, getResult());

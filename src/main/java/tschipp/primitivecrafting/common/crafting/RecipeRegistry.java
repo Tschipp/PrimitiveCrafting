@@ -27,11 +27,13 @@ public class RecipeRegistry
 {
 	private static Set<IPrimitiveRecipe> registry = new HashSet<IPrimitiveRecipe>();
 	private static Map<Integer, IPrimitiveRecipe> hashRegistry = new HashMap<Integer, IPrimitiveRecipe>();
+	private static HashMap<ResourceLocation, IPrimitiveRecipe> resourceRegistry = new HashMap<ResourceLocation, IPrimitiveRecipe>();
 
 	public static void registerRecipe(IPrimitiveRecipe recipe)
 	{
 		registry.add(recipe);
 		hashRegistry.put(recipe.hashCode(), recipe);
+		resourceRegistry.put(recipe.getRegistryName(), recipe);
 	}
 
 	public static void registerRecipe(ItemStack a, ItemStack b, ItemStack result, ResourceLocation loc)
@@ -60,9 +62,16 @@ public class RecipeRegistry
 			IPrimitiveRecipe r = recipes.get(i);
 			if (((r.getA().equals(a) && r.getB().equals(b)) || (r.getA().equals(b) && r.getB().equals(a))) && result.areItemStacksEqual(result, r.getResult()))
 			{
-				registry.remove(r);
+				remove(r);
 			}
 		}
+	}
+	
+	public static void remove(IPrimitiveRecipe recipe)
+	{
+		registry.remove(recipe);
+		hashRegistry.remove(recipe.hashCode());
+		resourceRegistry.remove(recipe.getRegistryName());
 	}
 
 	public static PrimitiveIngredient get(ItemStack stack)
@@ -88,6 +97,11 @@ public class RecipeRegistry
 		valids.sort((r1, r2) -> r1.getResult().getItem().getRegistryName().toString().compareTo(r2.getResult().getItem().getRegistryName().toString()));
 
 		return valids;
+	}
+	
+	public static IPrimitiveRecipe getRecipe(ResourceLocation name)
+	{
+		return resourceRegistry.get(name);
 	}
 
 	@Nullable
@@ -227,6 +241,9 @@ public class RecipeRegistry
 		{
 			for (IPrimitiveRecipe r : registry)
 			{
+				if(!r.getTier().isEmpty())
+					continue;
+					
 				IRecipe parent = ForgeRegistries.RECIPES.getValue(r.getRegistryName());
 				if (parent == null)
 					continue;

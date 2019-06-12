@@ -67,13 +67,12 @@ public class PrimitiveIngredient
 		{
 			ItemStack itemstack = matchingStacks[i];
 
-			boolean equal = PrimitiveRecipe.areStacksEqual(itemstack, stack);
-
-			if (ingredient.apply(stack))
-				equal = true;
-
-			if (equal)
+			boolean equal = PrimitiveRecipe.areStacksEqual(itemstack, stack) ;
+			boolean matches = ingredient.apply(stack);
+			
+			if (matches && equal)
 				return transformData[i];
+			
 		}
 		return null;
 	}
@@ -88,11 +87,9 @@ public class PrimitiveIngredient
 			for (ItemStack itemstack : ingredient.getMatchingStacks())
 			{
 				boolean equal = PrimitiveRecipe.areStacksEqual(itemstack, stack);
+				boolean matches = ingredient.apply(stack);
 
-				if (ingredient.apply(stack))
-					equal = true;
-
-				if (equal)
+				if (matches)
 					return true;
 			}
 

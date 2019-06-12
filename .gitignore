@@ -24,3 +24,5 @@ run
 build\.bat
 
 setup\.bat
+
+gradle\.properties

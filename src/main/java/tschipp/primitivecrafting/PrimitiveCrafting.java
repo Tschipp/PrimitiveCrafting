@@ -8,6 +8,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -15,7 +16,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import tschipp.primitivecrafting.common.CommonProxy;
 
 @EventBusSubscriber
-@Mod(modid = PrimitiveCrafting.MODID, name = PrimitiveCrafting.NAME, version = PrimitiveCrafting.VERSION, dependencies = PrimitiveCrafting.DEPENDENCIES, acceptedMinecraftVersions = PrimitiveCrafting.ACCEPTED_VERSIONS, guiFactory = "tschipp.primitivecrafting.client.gui.GuiFactoryPrimitive")
+@Mod(modid = PrimitiveCrafting.MODID, name = PrimitiveCrafting.NAME, version = PrimitiveCrafting.VERSION, dependencies = PrimitiveCrafting.DEPENDENCIES, acceptedMinecraftVersions = PrimitiveCrafting.ACCEPTED_VERSIONS, guiFactory = "tschipp.primitivecrafting.client.gui.GuiFactoryPrimitive", certificateFingerprint = "55e88f24d04398481ae6f1ce76f65fd776f14227")
 public class PrimitiveCrafting
 {
 
@@ -27,7 +28,7 @@ public class PrimitiveCrafting
 	public static PrimitiveCrafting instance;
 
 	public static final String MODID = "primitivecrafting";
-	public static final String VERSION = "1.3";
+	public static final String VERSION = "1.3.2";
 	public static final String NAME = "Primitive Crafting";
 	public static final String ACCEPTED_VERSIONS = "[1.12.2,1.13)";
 	public static final String DEPENDENCIES = "required-after:forge@[13.20.1.2386,);before:jei@[4.11.0.212,);after:recipestages";
@@ -53,5 +54,11 @@ public class PrimitiveCrafting
 		PrimitiveCrafting.proxy.postInit(event);
 	}
 
+	@EventHandler
+    public void onFingerprintViolation(FMLFingerprintViolationEvent event) {
+        
+		LOGGER.error("WARNING! Invalid fingerprint detected! The file " + event.getSource().getName() + " may have been tampered with! If you didn't download the file from https://minecraft.curseforge.com/projects/primitive-crafting or through any kind of mod launcher, immediately delete the file and re-download it from https://minecraft.curseforge.com/projects/primitive-crafting");
+    }
+	
 }
 	

@@ -8,6 +8,50 @@ import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class StageHelper
 {
+	private static Class<?> gameStageHelper;
+	private static Class<?> iStageHelper;
+
+	private static Method getPlayerData;
+	private static Method hasStage;
+
+	private static boolean usesNewVersion = true;
+
+	private static Class<?> playerDataHandler;
+	private static Class<?> iStageData;
+
+	private static Method getStageData;
+	private static Method hasUnlockedStage;
+
+	static
+	{
+		if (Loader.isModLoaded("gamestages"))
+		{
+			try
+			{
+				gameStageHelper = Class.forName("net.darkhax.gamestages.GameStageHelper");
+				iStageData = Class.forName("net.darkhax.gamestages.data.IStageData");
+
+				getPlayerData = ReflectionHelper.findMethod(gameStageHelper, "getPlayerData", null, EntityPlayer.class);
+				hasStage = ReflectionHelper.findMethod(iStageData, "hasStage", null, String.class);
+
+			} catch (Exception e)
+			{
+				try
+				{
+					playerDataHandler = Class.forName("net.darkhax.gamestages.capabilities.PlayerDataHandler");
+					iStageData = Class.forName("net.darkhax.gamestages.capabilities.PlayerDataHandler$IStageData");
+
+					getStageData = ReflectionHelper.findMethod(playerDataHandler, "getStageData", null, EntityPlayer.class);
+					hasUnlockedStage = ReflectionHelper.findMethod(iStageData, "hasUnlockedStage", null, String.class);
+
+					usesNewVersion = false;
+
+				} catch (Exception ex)
+				{
+				}
+			}
+		}
+	}
 
 	public static boolean hasStage(EntityPlayer player, String stage)
 	{
@@ -16,40 +60,34 @@ public class StageHelper
 			if (stage.isEmpty())
 				return true;
 
-			try
-			{
-				Class<?> gameStageHelper = Class.forName("net.darkhax.gamestages.GameStageHelper");
-				Class<?> iStageData = Class.forName("net.darkhax.gamestages.data.IStageData");
-
-				Method getPlayerData = ReflectionHelper.findMethod(gameStageHelper, "getPlayerData", null, EntityPlayer.class);
-				Method hasStage = ReflectionHelper.findMethod(iStageData, "hasStage", null, String.class);
-
-				Object stageData = getPlayerData.invoke(null, player);
-				boolean has = (boolean) hasStage.invoke(stageData, stage);
-
-				return has;
-			} catch (Exception e)
+			if (usesNewVersion)
 			{
 				try
 				{
-					Class<?> playerDataHandler = Class.forName("net.darkhax.gamestages.capabilities.PlayerDataHandler");
-					Class<?> iStageData = Class.forName("net.darkhax.gamestages.capabilities.PlayerDataHandler$IStageData");
+					Object stageData = getPlayerData.invoke(null, player);
+					boolean has = (boolean) hasStage.invoke(stageData, stage);
 
-					Method getStageData = ReflectionHelper.findMethod(playerDataHandler, "getStageData", null, EntityPlayer.class);
-					Method hasUnlockedStage = ReflectionHelper.findMethod(iStageData, "hasUnlockedStage", null, String.class);
-
+					return has;
+				} catch (Exception e)
+				{
+					return true;
+				}
+			} else
+			{
+				try
+				{
 					Object stageData = getStageData.invoke(null, player);
 					boolean has = (boolean) hasUnlockedStage.invoke(stageData, stage);
 
 					return has;
-				} catch (Exception ex)
+				} catch (Exception e)
 				{
-					return false;
+					return true;
 				}
 			}
 		}
 
-		return false;
+		return true;
 	}
-	
+
 }

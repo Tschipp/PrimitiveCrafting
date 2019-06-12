@@ -66,7 +66,58 @@ public class CTIntegration
 		recipeCount++;
 	}
 	
+	@ZenMethod
+	public static void addRecipeStage(String gamestage, String recipeName)
+	{
+		IPrimitiveRecipe rec = RecipeRegistry.getRecipe(new ResourceLocation(recipeName));
+		if(rec != null)
+		{
+			rec.setTier(gamestage);
+		}
+	}
+	
+	@ZenMethod
+	public static void addRecipeStageForStack(String gamestage, IItemStack stack)
+	{
+		if (stack != null)
+		{
+			ItemStack mcstack = CraftTweakerMC.getItemStack(stack);
+			for(IPrimitiveRecipe recipe  : RecipeRegistry.getRecipes())
+			{
+				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), mcstack);
+				if(equal)
+					recipe.setTier(gamestage);
+				
+				System.out.println("OOf");
+			}
+		}
+	}
+	
+	@ZenMethod
+	public static void removeRecipeStage(String recipeName)
+	{
+		IPrimitiveRecipe rec = RecipeRegistry.getRecipe(new ResourceLocation(recipeName));
+		if(rec != null)
+		{
+			rec.setTier("");
+		}
+	}
 
+	@ZenMethod
+	public static void removeRecipeStageForStack(IItemStack stack)
+	{
+		if (stack != null)
+		{
+			ItemStack mcstack = CraftTweakerMC.getItemStack(stack);
+			for(IPrimitiveRecipe recipe  : RecipeRegistry.getRecipes())
+			{
+				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), mcstack);
+				if(equal)
+					recipe.setTier("");
+			}
+		}
+	}
+	
 	@ZenMethod
 	public static void removeRecipe(IItemStack output, IIngredient a, IIngredient b)
 	{
@@ -88,6 +139,21 @@ public class CTIntegration
 
 					RecipeRegistry.removeRecipe(pA, pB, stackOutput);
 				}
+			}
+		}
+	}
+	
+	@ZenMethod
+	public static void removeRecipeForStack(IItemStack output)
+	{
+		if (output != null)
+		{
+			ItemStack stack = CraftTweakerMC.getItemStack(output);
+			for(IPrimitiveRecipe recipe  : RecipeRegistry.getRecipes())
+			{
+				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), stack);
+				if(equal)
+					RecipeRegistry.remove(recipe);
 			}
 		}
 	}
