@@ -159,13 +159,12 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		} else if (one.getMetadata() != other.getMetadata())
 		{
 			return false;
-		} else if (one.getTagCompound() == null && other.getTagCompound() != null)
+		} else if (one.getTagCompound() != other.getTagCompound() )
 		{
 			return false;
-		} else
-		{
-			return (one.getTagCompound() == null || one.getTagCompound().equals(other.getTagCompound())) && one.areCapsCompatible(other);
 		}
+		
+		return true;
 	}
 
 	public static void addItem(EntityPlayer player, ItemStack stack)

@@ -1,10 +1,13 @@
 package tschipp.primitivecrafting.common.crafting;
 
+import java.util.Arrays;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
+import tschipp.primitivecrafting.PrimitiveCrafting;
 import tschipp.primitivecrafting.common.crafting.TransformData.TransformType;
 
 public class PrimitiveIngredient
@@ -74,7 +77,13 @@ public class PrimitiveIngredient
 				return transformData[i];
 			
 		}
-		return null;
+
+		PrimitiveCrafting.LOGGER.error("Didn't find a Transform!");
+		PrimitiveCrafting.LOGGER.error("ItemStack as Input: " + stack.toString());
+		PrimitiveCrafting.LOGGER.error("Matching stacks for ingredient: " + Arrays.toString(matchingStacks));
+		PrimitiveCrafting.LOGGER.error("ItemStack is applying:  " + ingredient.apply(stack));
+		
+		return TransformData.getTransformData(TransformType.SHRINK);
 	}
 
 	public boolean test(@Nullable ItemStack stack)
