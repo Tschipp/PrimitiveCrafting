@@ -87,6 +87,19 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		result = prime * result + ((this.result == null) ? 0 : this.result.getItem().hashCode() + this.result.getMetadata() + (this.result.hasTagCompound() ? this.result.getTagCompound().hashCode() : 0));
 		return result;
 	}
+	
+	@Override
+	public boolean equals(Object other)
+	{
+		if(other instanceof PrimitiveRecipe)
+		{
+			PrimitiveRecipe r = (PrimitiveRecipe) other;
+			if(r.a.equals(this.a) && r.b.equals(this.b) && areStacksEqual(result, r.result) && r.registryName.equals(this.registryName))
+				return  true;
+		}
+		
+		return false;
+	}
 
 	public ItemStack sort(ItemStack a, ItemStack b, boolean getA)
 	{

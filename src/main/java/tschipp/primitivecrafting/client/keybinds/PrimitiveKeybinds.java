@@ -14,6 +14,7 @@ public class PrimitiveKeybinds
 	public static KeyBinding cycleRecipes;
 	public static KeyBinding showRecipe;
 	public static KeyBinding craftStack;
+	public static KeyBinding craftItem;
 
 
 	@SideOnly(Side.CLIENT)

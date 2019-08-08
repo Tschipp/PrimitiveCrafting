@@ -62,18 +62,29 @@ public class RenderEvents
 			{
 				if (!cachedRecipes.isEmpty() && cachedRecipes.get(index).equals(lastRecipe))
 				{
+					
 					IPrimitiveRecipe recipe = lastRecipe;
 
 					if (Mouse.isButtonDown(0))
 					{
+						
 						recipe.craft(held, slotBelow.getStack(), player, held, slotBelow.getSlotIndex());
 						PrimitiveCrafting.network.sendToServer(new Craft(slotBelow.getSlotIndex(), recipe));
 						lastCrafted = recipe;
+
 					}
 					event.setCanceled(true);
 
 					if (PrimitiveKeybinds.craftStack.getKeyCode() > 0 && Keyboard.isKeyDown(PrimitiveKeybinds.craftStack.getKeyCode()))
 					{
+
+						if(lastCrafted == null)
+						{
+							recipe.craft(held, slotBelow.getStack(), player, held, slotBelow.getSlotIndex());
+							PrimitiveCrafting.network.sendToServer(new Craft(slotBelow.getSlotIndex(), recipe));
+							lastCrafted = recipe;
+						}
+						
 						while (recipe.isValid(held, slotBelow.getStack()) && lastRecipe.equals(lastCrafted))
 						{
 							recipe.craft(held, slotBelow.getStack(), player, held, slotBelow.getSlotIndex());

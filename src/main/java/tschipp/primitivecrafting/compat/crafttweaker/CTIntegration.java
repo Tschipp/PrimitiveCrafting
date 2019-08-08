@@ -22,7 +22,7 @@ public class CTIntegration
 {
 
 	private static int recipeCount = 0;
-	
+
 	@ZenMethod
 	public static void addRecipe(IItemStack output, IIngredient a, IIngredient b, String registryName, String gamestage)
 	{
@@ -45,57 +45,55 @@ public class CTIntegration
 
 					IPrimitiveRecipe recipe = new PrimitiveRecipe(stackOutput, pA, pB, new ResourceLocation(registryName));
 					recipe.setTier(gamestage);
-					
+
 					RecipeRegistry.registerRecipe(recipe);
 				}
 			}
 		}
 	}
-	
+
 	@ZenMethod
 	public static void addRecipe(IItemStack output, IIngredient a, IIngredient b)
 	{
 		addRecipe(output, a, b, PrimitiveCrafting.MODID + ":primitive_crafttweaker_recipe_" + recipeCount, "");
 		recipeCount++;
 	}
-	
+
 	@ZenMethod
 	public static void addRecipe(IItemStack output, IIngredient a, IIngredient b, String registryName)
 	{
 		addRecipe(output, a, b, registryName, "");
 		recipeCount++;
 	}
-	
+
 	@ZenMethod
 	public static void addRecipeStage(String gamestage, String recipeName)
 	{
 		IPrimitiveRecipe rec = RecipeRegistry.getRecipe(new ResourceLocation(recipeName));
-		if(rec != null)
+		if (rec != null)
 		{
 			rec.setTier(gamestage);
 		}
 	}
-	
+
 	@ZenMethod
 	public static void addRecipeStageForStack(String gamestage, IItemStack stack)
 	{
 		if (stack != null)
 		{
 			ItemStack mcstack = CraftTweakerMC.getItemStack(stack);
-			for(IPrimitiveRecipe recipe  : RecipeRegistry.getRecipes())
+			for (IPrimitiveRecipe recipe : RecipeRegistry.getRecipeForStack(mcstack))
 			{
-				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), mcstack);
-				if(equal)
-					recipe.setTier(gamestage);
+				recipe.setTier(gamestage);
 			}
 		}
 	}
-	
+
 	@ZenMethod
 	public static void removeRecipeStage(String recipeName)
 	{
 		IPrimitiveRecipe rec = RecipeRegistry.getRecipe(new ResourceLocation(recipeName));
-		if(rec != null)
+		if (rec != null)
 		{
 			rec.setTier("");
 		}
@@ -107,15 +105,13 @@ public class CTIntegration
 		if (stack != null)
 		{
 			ItemStack mcstack = CraftTweakerMC.getItemStack(stack);
-			for(IPrimitiveRecipe recipe  : RecipeRegistry.getRecipes())
+			for (IPrimitiveRecipe recipe : RecipeRegistry.getRecipeForStack(mcstack))
 			{
-				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), mcstack);
-				if(equal)
-					recipe.setTier("");
+				recipe.setTier("");
 			}
 		}
 	}
-	
+
 	@ZenMethod
 	public static void removeRecipe(IItemStack output, IIngredient a, IIngredient b)
 	{
@@ -140,17 +136,17 @@ public class CTIntegration
 			}
 		}
 	}
-	
+
 	@ZenMethod
 	public static void removeRecipeForStack(IItemStack output)
 	{
 		if (output != null)
 		{
 			ItemStack stack = CraftTweakerMC.getItemStack(output);
-			for(IPrimitiveRecipe recipe  : RecipeRegistry.getRecipes())
+			for (IPrimitiveRecipe recipe : RecipeRegistry.getRecipes())
 			{
 				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), stack);
-				if(equal)
+				if (equal)
 					RecipeRegistry.remove(recipe);
 			}
 		}

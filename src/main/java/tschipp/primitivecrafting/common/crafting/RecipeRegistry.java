@@ -2,6 +2,7 @@ package tschipp.primitivecrafting.common.crafting;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+
+import com.google.common.collect.Lists;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -26,14 +29,24 @@ import tschipp.primitivecrafting.common.helper.StageHelper;
 public class RecipeRegistry
 {
 	private static Set<IPrimitiveRecipe> registry = new HashSet<IPrimitiveRecipe>();
-	private static Map<Integer, IPrimitiveRecipe> hashRegistry = new HashMap<Integer, IPrimitiveRecipe>();
 	private static HashMap<ResourceLocation, IPrimitiveRecipe> resourceRegistry = new HashMap<ResourceLocation, IPrimitiveRecipe>();
+	private static HashMap<String, List<IPrimitiveRecipe>> outputRegistry = new HashMap<String, List<IPrimitiveRecipe>>();
 
 	public static void registerRecipe(IPrimitiveRecipe recipe)
 	{
 		registry.add(recipe);
-		hashRegistry.put(recipe.hashCode(), recipe);
 		resourceRegistry.put(recipe.getRegistryName(), recipe);
+		String outputString = getItemString(recipe.getResult());
+		if (outputRegistry.containsKey(outputString))
+		{
+			List<IPrimitiveRecipe> recipes = outputRegistry.get(outputString);
+			recipes.add(recipe);
+		} else
+		{
+			ArrayList<IPrimitiveRecipe> list = new ArrayList<IPrimitiveRecipe>();
+			list.add(recipe);
+			outputRegistry.put(outputString, list);
+		}
 	}
 
 	public static void registerRecipe(ItemStack a, ItemStack b, ItemStack result, ResourceLocation loc)
@@ -66,11 +79,10 @@ public class RecipeRegistry
 			}
 		}
 	}
-	
+
 	public static void remove(IPrimitiveRecipe recipe)
 	{
 		registry.remove(recipe);
-		hashRegistry.remove(recipe.hashCode());
 		resourceRegistry.remove(recipe.getRegistryName());
 	}
 
@@ -98,16 +110,19 @@ public class RecipeRegistry
 
 		return valids;
 	}
-	
+
 	public static IPrimitiveRecipe getRecipe(ResourceLocation name)
 	{
 		return resourceRegistry.get(name);
 	}
 
-	@Nullable
-	public static IPrimitiveRecipe getFromHash(int hash)
+	public static List<IPrimitiveRecipe> getRecipeForStack(ItemStack output)
 	{
-		return hashRegistry.get(hash);
+		String string = getItemString(output);
+		List<IPrimitiveRecipe> list = outputRegistry.get(string);
+		if (list != null)
+			return list;
+		return Collections.EMPTY_LIST;
 	}
 
 	public static void regRecipes()
@@ -121,11 +136,12 @@ public class RecipeRegistry
 
 				NonNullList<Ingredient> ingredients = recipe.getIngredients();
 
-//				ItemStack output = recipe.getRecipeOutput();
-//				if(!output.isEmpty() && output.getItem() == Item.getByNameOrId("minecraft:bed") && output.getItemDamage() == 0)
-//					System.out.println("OOF");
-				
-				
+				// ItemStack output = recipe.getRecipeOutput();
+				// if(!output.isEmpty() && output.getItem() ==
+				// Item.getByNameOrId("minecraft:bed") && output.getItemDamage()
+				// == 0)
+				// System.out.println("OOF");
+
 				if (ingredients.size() == 2)
 				{
 					if (!recipe.getRecipeOutput().isEmpty())
@@ -241,17 +257,23 @@ public class RecipeRegistry
 		{
 			for (IPrimitiveRecipe r : registry)
 			{
-				if(!r.getTier().isEmpty())
+				if (!r.getTier().isEmpty())
 					continue;
-					
+
 				IRecipe parent = ForgeRegistries.RECIPES.getValue(r.getRegistryName());
 				if (parent == null)
 					continue;
-				
+
 				String tier = getTierIfStaged(parent);
-				
+
 				r.setTier(tier);
 			}
 		}
+	}
+
+	public static String getItemString(ItemStack output)
+	{
+		String outputString = output.getItem().getRegistryName().toString() + "@" + output.getMetadata() + "$" + (output.hasTagCompound() ? output.getTagCompound().toString() : "");
+		return outputString;
 	}
 }
