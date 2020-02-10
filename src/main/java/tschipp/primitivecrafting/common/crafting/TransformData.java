@@ -1,12 +1,9 @@
 package tschipp.primitivecrafting.common.crafting;
 
-import java.lang.reflect.Field;
+import javax.annotation.Nullable;
 
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class TransformData
 {
@@ -23,7 +20,7 @@ public class TransformData
 	{
 	}
 
-	public void transformStack(ItemStack toTransform, EntityPlayer player, boolean isHoverStack, int slot)
+	public void transformStack(ItemStack toTransform, @Nullable EntityPlayer player, boolean isHoverStack, int slot)
 	{
 		try
 		{
@@ -35,17 +32,23 @@ public class TransformData
 			case REUSE:
 				break;
 			case GIVE_BACK:
-				if (giveBack.isEmpty())
-					PrimitiveRecipe.addItem(player, toTransform.copy());
-				else
-					PrimitiveRecipe.addItem(player, giveBack.copy());
+				if (player != null)
+				{
+					if (giveBack.isEmpty())
+						PrimitiveRecipe.addItem(player, toTransform.copy());
+					else
+						PrimitiveRecipe.addItem(player, giveBack.copy());
+				}
 				toTransform.shrink(1);
 				break;
 			case REPLACE:
-				if (isHoverStack)
-					player.inventory.setItemStack(replace.copy());
-				else
-					player.inventory.setInventorySlotContents(slot, replace.copy());
+				if (player != null)
+				{
+					if (isHoverStack)
+						player.inventory.setItemStack(replace.copy());
+					else
+						player.inventory.setInventorySlotContents(slot, replace.copy());
+				}
 				break;
 			case DAMAGE:
 				toTransform.damageItem(damageApplied, player);

@@ -95,10 +95,10 @@ public class PrimitiveIngredient
 		{
 			for (ItemStack itemstack : ingredient.getMatchingStacks())
 			{
-				boolean equal = PrimitiveRecipe.areStacksEqual(itemstack, stack);
+//				boolean equal = PrimitiveRecipe.areStacksEqual(itemstack, stack);
 				boolean matches = ingredient.apply(stack);
 
-				if (matches)
+				if (matches && stack.getCount() >= count)
 					return true;
 			}
 

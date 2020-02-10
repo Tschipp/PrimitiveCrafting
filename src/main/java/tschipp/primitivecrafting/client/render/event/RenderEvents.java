@@ -1,6 +1,7 @@
 package tschipp.primitivecrafting.client.render.event;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.lwjgl.input.Keyboard;
@@ -14,6 +15,7 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.inventory.Slot;
@@ -30,28 +32,32 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import tschipp.primitivecrafting.PrimitiveCrafting;
+import tschipp.primitivecrafting.client.crafting.CraftingAction;
 import tschipp.primitivecrafting.client.keybinds.PrimitiveKeybinds;
 import tschipp.primitivecrafting.common.config.PrimitiveConfig;
 import tschipp.primitivecrafting.common.crafting.IPrimitiveRecipe;
 import tschipp.primitivecrafting.common.crafting.RecipeRegistry;
 import tschipp.primitivecrafting.common.helper.StageHelper;
-import tschipp.primitivecrafting.network.Craft;
 
 public class RenderEvents
 {
+	private static CraftingAction craftingAction;
+	private static CraftingAction lastCrafted;
+	private static boolean crafted = false;
+	
+	// Cycle
+	private static boolean hasSelected = false;
+	private static IPrimitiveRecipe nextRecipe = null;
+	private static boolean cycle = false;
 
-	public static List<IPrimitiveRecipe> cachedRecipes = new ArrayList<IPrimitiveRecipe>();
-	public static IPrimitiveRecipe lastRecipe = null;
-	public static IPrimitiveRecipe lastCrafted = null;
-	public static int index = 0;
-
+	// Handles Crafting
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onGuiClick(GuiScreenEvent.MouseInputEvent.Pre event)
 	{
 		GuiScreen gui = event.getGui();
 
-		if (PrimitiveKeybinds.showRecipe.getKeyCode() > 0 && gui instanceof GuiContainer && Keyboard.isKeyDown(PrimitiveKeybinds.showRecipe.getKeyCode()) && Mouse.getEventButton() == 0)
+		if (gui instanceof GuiContainer && isPressed(PrimitiveKeybinds.showRecipe) && Mouse.getEventButton() == 0 && Mouse.getEventButtonState())
 		{
 			GuiContainer container = (GuiContainer) gui;
 			Slot slotBelow = container.getSlotUnderMouse();
@@ -60,65 +66,36 @@ public class RenderEvents
 
 			if (slotBelow != null && slotBelow.getHasStack() && !slotBelow.getStack().isEmpty() && slotBelow.inventory == player.inventory && !held.isEmpty())
 			{
-				if (!cachedRecipes.isEmpty() && cachedRecipes.get(index).equals(lastRecipe))
+				if (craftingAction != null && craftingAction.getSlot() == slotBelow && !cycle && !hasSelected)
 				{
-					
-					IPrimitiveRecipe recipe = lastRecipe;
+					boolean craftAll = false;
 
-					if (Mouse.isButtonDown(0))
-					{
-						
-						recipe.craft(held, slotBelow.getStack(), player, held, slotBelow.getSlotIndex());
-						PrimitiveCrafting.network.sendToServer(new Craft(slotBelow.getSlotIndex(), recipe));
-						lastCrafted = recipe;
+					if (isPressed(PrimitiveKeybinds.craftStack))
+						craftAll = true;
 
-					}
+					craftingAction.craft(held, slotBelow.getStack(), craftAll, slotBelow.getSlotIndex());
 					event.setCanceled(true);
-
-					if (PrimitiveKeybinds.craftStack.getKeyCode() > 0 && Keyboard.isKeyDown(PrimitiveKeybinds.craftStack.getKeyCode()))
-					{
-
-						if(lastCrafted == null)
-						{
-							recipe.craft(held, slotBelow.getStack(), player, held, slotBelow.getSlotIndex());
-							PrimitiveCrafting.network.sendToServer(new Craft(slotBelow.getSlotIndex(), recipe));
-							lastCrafted = recipe;
-						}
-						
-						while (recipe.isValid(held, slotBelow.getStack()) && lastRecipe.equals(lastCrafted))
-						{
-							recipe.craft(held, slotBelow.getStack(), player, held, slotBelow.getSlotIndex());
-							PrimitiveCrafting.network.sendToServer(new Craft(slotBelow.getSlotIndex(), recipe));
-							lastCrafted = recipe;
-						}
-					}
-
+					crafted = true;
+					return;
 				}
-
 			}
 		}
 
-		lastCrafted = null;
-
+		if (hasSelected || crafted)
+		{
+			event.setCanceled(true);
+			crafted = false;
+		}
 	}
 
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onKeyboard(GuiScreenEvent.KeyboardInputEvent.Pre event)
 	{
-		if (PrimitiveKeybinds.cycleRecipes.getKeyCode() > 0 && Keyboard.isKeyDown(PrimitiveKeybinds.cycleRecipes.getKeyCode()))
-		{
-			int size = cachedRecipes.size();
-			if (size > 0)
-			{
-				index++;
-				if (index == size)
-				{
-					index = 0;
-				}
-			}
-
-		}
+		if (isPressed(PrimitiveKeybinds.cycleRecipes))
+			cycle = true;
+		else
+			cycle = false;
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -129,7 +106,7 @@ public class RenderEvents
 		Minecraft minecraft = Minecraft.getMinecraft();
 		EntityPlayer player = minecraft.player;
 
-		if (gui instanceof GuiContainer && PrimitiveKeybinds.showRecipe.getKeyCode() > 0 && Keyboard.isKeyDown(PrimitiveKeybinds.showRecipe.getKeyCode()))
+		if (gui instanceof GuiContainer && isPressed(PrimitiveKeybinds.showRecipe))
 		{
 			GuiContainer container = (GuiContainer) gui;
 			Slot slotBelow = container.getSlotUnderMouse();
@@ -138,20 +115,47 @@ public class RenderEvents
 			if (slotBelow != null && slotBelow.getHasStack() && !slotBelow.getStack().isEmpty() && slotBelow.inventory == minecraft.player.inventory && !held.isEmpty())
 			{
 				ItemStack stackUnder = slotBelow.getStack();
+				boolean regenerateRecipe = true;
 
-				List<IPrimitiveRecipe> recipes;
-				if (cachedRecipes.isEmpty())
-					recipes = RecipeRegistry.getValidRecipes(held, stackUnder, player);
-				else
-					recipes = cachedRecipes;
-
-				if (!recipes.isEmpty() && recipes.get(0).isValid(slotBelow.getStack(), held))
+				if ((craftingAction != null && craftingAction.isSame(held, stackUnder)) || cycle || hasSelected)
 				{
-					IPrimitiveRecipe recipe = recipes.get(index);
+					regenerateRecipe = false;
+				}
 
-					cachedRecipes = recipes;
-					lastRecipe = recipe;
+				if (regenerateRecipe)
+				{
+					if (craftingAction != null)
+						lastCrafted = craftingAction;
 
+					List<IPrimitiveRecipe> recipes = RecipeRegistry.getValidRecipes(held, stackUnder, player);
+					if (!recipes.isEmpty())
+						craftingAction = new CraftingAction(recipes, recipes.get(0), held, stackUnder, slotBelow, lastCrafted);
+					else if (!cycle && !hasSelected)
+						craftingAction = null;
+				}
+
+			} else
+			{
+				if (!cycle && !hasSelected)
+				{
+					if (craftingAction != null)
+						lastCrafted = craftingAction;
+					craftingAction = null;
+				}
+			}
+
+			if (craftingAction != null)
+			{
+				if (slotBelow != null && craftingAction.getSlot() == slotBelow)
+					hasSelected = false;
+
+				IPrimitiveRecipe recipe = craftingAction.getCurrentRecipe();
+				ItemStack stackUnder = craftingAction.getSlot().getStack();
+
+				boolean sizeFlag = craftingAction.getValidRecipes().size() > 1;
+
+				if (!(sizeFlag && cycle))
+				{
 					int desiredLength = 76;
 					int spaceLength = minecraft.fontRenderer.getStringWidth(" ");
 
@@ -164,16 +168,19 @@ public class RenderEvents
 					tooltip.add(s);
 					tooltip.add(s);
 
-					GlStateManager.pushMatrix();
-					GuiUtils.drawHoveringText(ItemStack.EMPTY, tooltip, event.getMouseX(), event.getMouseY(), gui.width, gui.height, -1, minecraft.fontRenderer);
+					int renderX = hasSelected ? container.getGuiLeft() + craftingAction.getSlot().xPos + 8 : event.getMouseX();
+					int renderY = hasSelected ? container.getGuiTop() + craftingAction.getSlot().yPos + 8 : event.getMouseY();
 
-					if (recipes.size() > 1)
+					GlStateManager.pushMatrix();
+					GuiUtils.drawHoveringText(ItemStack.EMPTY, tooltip, renderX, renderY, gui.width, gui.height, -1, minecraft.fontRenderer);
+
+					if (sizeFlag)
 					{
 						tooltip.clear();
 						tooltip.add(I18n.translateToLocal("primitivecrafting.moreoptions"));
 						tooltip.add(String.format(I18n.translateToLocal("primitivecrafting.cycle"), TextFormatting.GREEN + PrimitiveKeybinds.cycleRecipes.getDisplayName() + TextFormatting.RESET));
-						GuiUtils.drawHoveringText(ItemStack.EMPTY, tooltip, event.getMouseX(), event.getMouseY() + 30, gui.width, gui.height, -1, minecraft.fontRenderer);
 
+						GuiUtils.drawHoveringText(ItemStack.EMPTY, tooltip, renderX, renderY + 30, gui.width, gui.height, -1, minecraft.fontRenderer);
 					}
 
 					GlStateManager.popMatrix();
@@ -185,8 +192,8 @@ public class RenderEvents
 					GlStateManager.enableRescaleNormal();
 					render.zLevel = 600;
 
-					int x = event.getMouseX() + 11;
-					int y = event.getMouseY() - 10;
+					int x = renderX + 11;
+					int y = renderY - 10;
 
 					ItemStack a;
 					ItemStack b;
@@ -196,22 +203,22 @@ public class RenderEvents
 					{
 						a = held.copy();
 						a.setCount(recipe.getA().count);
-						b = slotBelow.getStack().copy();
+						b = stackUnder.copy();
 						b.setCount(recipe.getB().count);
 					} else
 					{
-						a = slotBelow.getStack().copy();
+						a = stackUnder.copy();
 						a.setCount(recipe.getA().count);
 						b = held.copy();
 						b.setCount(recipe.getB().count);
 					}
 
-					if (PrimitiveKeybinds.craftStack.getKeyCode() > 0 && Keyboard.isKeyDown(PrimitiveKeybinds.craftStack.getKeyCode()))
+					if (isPressed(PrimitiveKeybinds.craftStack))
 					{
-						int amountCrafted = getTimesCrafted(held, stackUnder, recipe);
-						a.setCount(a.getCount() * amountCrafted);
-						b.setCount(b.getCount() * amountCrafted);
-						result.setCount(result.getCount() * amountCrafted);
+						int[] amountCrafted = CraftingAction.getTimesCrafted(held, stackUnder, recipe);
+						a.setCount(amountCrafted[1]);
+						b.setCount(amountCrafted[2]);
+						result.setCount(result.getCount() * amountCrafted[0]);
 
 					}
 
@@ -233,22 +240,98 @@ public class RenderEvents
 					minecraft.fontRenderer.drawStringWithShadow("+", x + 20, y + 5, -1);
 					minecraft.fontRenderer.drawStringWithShadow("=", x + 50, y + 5, -1);
 					GlStateManager.enableDepth();
-
 				}
 
-			} else
+			}
+
+			if (craftingAction != null && cycle)
 			{
-				index = 0;
-				cachedRecipes.clear();
-				lastRecipe = null;
+				if (craftingAction.getValidRecipes().size() > 1)
+				{
+					GlStateManager.pushMatrix();
+					GlStateManager.translate(0, 0, 400);
+					GlStateManager.enableAlpha();
+					GlStateManager.enableBlend();
+
+					Minecraft.getMinecraft().getTextureManager().bindTexture(new ResourceLocation(PrimitiveCrafting.MODID + ":textures/gui/blur.png"));
+					GlStateManager.color(1, 1, 1, 1);
+					Gui.drawModalRectWithCustomSizedTexture(container.getGuiLeft() + craftingAction.getSlot().xPos - 40, container.getGuiTop() + craftingAction.getSlot().yPos - 40, 0, 0, 96, 96, 96, 96);
+					GlStateManager.popMatrix();
+
+					GlStateManager.pushMatrix();
+
+					GlStateManager.translate(0, 0, 820);
+					RenderHelper.enableGUIStandardItemLighting();
+
+					double angle = (Math.PI * 2) / (craftingAction.getValidRecipes().size() - 1);
+
+					RenderItem render = minecraft.getRenderItem();
+
+					int angleIndex = 0;
+					hasSelected = true;
+					boolean anyInBounds = false;
+
+					for (int i = 0; i < craftingAction.getValidRecipes().size(); i++)
+					{
+						IPrimitiveRecipe recipe = craftingAction.getValidRecipes().get(i);
+
+						if (recipe == craftingAction.getCurrentRecipe())
+						{
+							continue;
+						}
+
+						int rotX = (int) (Math.cos(angle * angleIndex) * 35 + craftingAction.getSlot().xPos);
+						int rotY = (int) (Math.sin(angle * angleIndex) * 35 + craftingAction.getSlot().yPos);
+
+						if (isInBounds(event.getMouseX(), event.getMouseY(), container.getGuiLeft() + rotX, container.getGuiTop() + rotY))
+						{
+							rotX = (int) (Math.cos(angle * angleIndex) * 43 + craftingAction.getSlot().xPos);
+							rotY = (int) (Math.sin(angle * angleIndex) * 43 + craftingAction.getSlot().yPos);
+							nextRecipe = recipe;
+							anyInBounds = true;
+						}
+
+						render.renderItemAndEffectIntoGUI(recipe.getResult(), container.getGuiLeft() + rotX, container.getGuiTop() + rotY);
+
+						angleIndex++;
+					}
+
+					int extra = isInBounds(event.getMouseX(), event.getMouseY(), container.getGuiLeft() + craftingAction.getSlot().xPos, container.getGuiTop() + craftingAction.getSlot().yPos) ? 5 : 0;
+
+					render.renderItemAndEffectIntoGUI(craftingAction.getCurrentRecipe().getResult(), container.getGuiLeft() + craftingAction.getSlot().xPos, container.getGuiTop() + craftingAction.getSlot().yPos - extra);
+
+					if (!anyInBounds)
+						nextRecipe = craftingAction.getCurrentRecipe();
+
+					RenderHelper.disableStandardItemLighting();
+					GlStateManager.popMatrix();
+				}
+			}
+
+			if (hasSelected && !cycle)
+			{
+				if (craftingAction != null)
+					craftingAction.setCurrentRecipe(nextRecipe);
 			}
 		} else
 		{
-			index = 0;
-			cachedRecipes.clear();
-			lastRecipe = null;
+			if (craftingAction != null)
+				lastCrafted = craftingAction;
+			craftingAction = null;
+			hasSelected = false;
+			nextRecipe = null;
 		}
 
+	}
+
+	private static boolean isPressed(KeyBinding key)
+	{
+		return key.getKeyCode() > 0 && Keyboard.isKeyDown(key.getKeyCode());
+	}
+
+	private static boolean isInBounds(int mouseX, int mouseY, int x, int y)
+	{
+		return mouseX >= x && mouseX <= x + 16 && mouseY >= y && mouseY <= y + 16;
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -296,32 +379,6 @@ public class RenderEvents
 				GlStateManager.popMatrix();
 			}
 		}
-	}
-
-	public static int getTimesCrafted(ItemStack stackA, ItemStack stackB, IPrimitiveRecipe recipe)
-	{
-		ItemStack a;
-		ItemStack b;
-
-		int aCount = recipe.getA().count;
-		int bCount = recipe.getB().count;
-
-		if (recipe.getA().test(stackA))
-		{
-			a = stackA.copy();
-			b = stackB.copy();
-		} else
-		{
-			a = stackB.copy();
-			b = stackA.copy();
-		}
-
-		int amountA = a.getCount() / aCount;
-		int amountB = b.getCount() / bCount;
-
-		if (amountA > amountB)
-			return amountB;
-		return amountA;
 	}
 
 }

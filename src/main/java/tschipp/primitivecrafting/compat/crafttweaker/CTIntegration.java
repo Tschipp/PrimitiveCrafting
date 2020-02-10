@@ -143,11 +143,9 @@ public class CTIntegration
 		if (output != null)
 		{
 			ItemStack stack = CraftTweakerMC.getItemStack(output);
-			for (IPrimitiveRecipe recipe : RecipeRegistry.getRecipes())
+			for (IPrimitiveRecipe recipe : RecipeRegistry.getRecipeForStack(stack))
 			{
-				boolean equal = PrimitiveRecipe.areStacksEqual(recipe.getResult(), stack);
-				if (equal)
-					RecipeRegistry.remove(recipe);
+				RecipeRegistry.remove(recipe);
 			}
 		}
 	}

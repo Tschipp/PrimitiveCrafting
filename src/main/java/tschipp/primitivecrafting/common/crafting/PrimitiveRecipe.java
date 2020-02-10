@@ -1,9 +1,9 @@
 package tschipp.primitivecrafting.common.crafting;
 
-import net.minecraft.client.entity.EntityPlayerSP;
+import javax.annotation.Nullable;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.ResourceLocation;
 import tschipp.primitivecrafting.PrimitiveCrafting;
 import tschipp.primitivecrafting.network.AddItem;
@@ -16,16 +16,16 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 	private PrimitiveIngredient b;
 
 	private String tier = "";
-	
+
 	private ResourceLocation registryName;
-	
+
 	public PrimitiveRecipe(ItemStack result, PrimitiveIngredient a, PrimitiveIngredient b, ResourceLocation loc)
 	{
 		this.result = result.copy();
 
 		this.a = a;
 		this.b = b;
-		
+
 		this.registryName = loc;
 	}
 
@@ -56,27 +56,26 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 	}
 
 	@Override
-	public void craft(ItemStack a, ItemStack b, EntityPlayer player, ItemStack hoverStack, int slot)
+	public void craft(ItemStack a, ItemStack b, @Nullable EntityPlayer player, ItemStack hoverStack, int slot)
 	{
 		ItemStack newA = sort(a, b, true);
 		ItemStack newB = sort(a, b, false);
 
 		if (newA != null && newB != null && !newA.isEmpty() && !newB.isEmpty())
-		{	
+		{
 			getCraftingResult(newA, newB, player, PrimitiveRecipe.areStacksEqual(newA, hoverStack) ? true : false, slot);
-			
+
 			addItem(player, getResult());
 		}
 	}
 
-	
 	@Override
-	public void getCraftingResult(ItemStack a, ItemStack b, EntityPlayer player, boolean isAHoverStack, int slot)
-	{
+	public void getCraftingResult(ItemStack a, ItemStack b, @Nullable EntityPlayer player, boolean isAHoverStack, int slot)
+	{	
 		this.getA().getTransformForStack(a).transformStack(a, player, isAHoverStack, slot);
 		this.getB().getTransformForStack(b).transformStack(b, player, !isAHoverStack, slot);
 	}
-	
+
 	@Override
 	public int hashCode()
 	{
@@ -87,23 +86,23 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		result = prime * result + ((this.result == null) ? 0 : this.result.getItem().hashCode() + this.result.getMetadata() + (this.result.hasTagCompound() ? this.result.getTagCompound().hashCode() : 0));
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object other)
 	{
-		if(other instanceof PrimitiveRecipe)
+		if (other instanceof PrimitiveRecipe)
 		{
 			PrimitiveRecipe r = (PrimitiveRecipe) other;
-			if(r.a.equals(this.a) && r.b.equals(this.b) && areStacksEqual(result, r.result) && r.registryName.equals(this.registryName))
-				return  true;
+			if (r.a.equals(this.a) && r.b.equals(this.b) && areStacksEqual(result, r.result) && r.registryName.equals(this.registryName))
+				return true;
 		}
-		
+
 		return false;
 	}
 
 	public ItemStack sort(ItemStack a, ItemStack b, boolean getA)
 	{
-		if (this.getA().test(a))
+		if (this.getA().test(a) && this.getB().test(b))
 		{
 			if (getA)
 				return a;
@@ -111,7 +110,7 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 				return b;
 		}
 
-		if (this.getB().test(a))
+		if (this.getA().test(b) && this.getB().test(a))
 		{
 			if (getA)
 				return b;
@@ -172,17 +171,17 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		} else if (one.getMetadata() != other.getMetadata())
 		{
 			return false;
-		} else if (one.getTagCompound() != other.getTagCompound() )
+		} else if (one.getTagCompound() != other.getTagCompound())
 		{
 			return false;
 		}
-		
+
 		return true;
 	}
 
 	public static void addItem(EntityPlayer player, ItemStack stack)
 	{
-		if (player instanceof EntityPlayerSP)
+		if (player != null && !player.world.isRemote)
 		{
 			PrimitiveCrafting.network.sendToServer(new AddItem(stack));
 		}
@@ -205,7 +204,5 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 	{
 		return registryName;
 	}
-
-	
 
 }

@@ -69,7 +69,7 @@ public class RecipeRegistry
 
 	public static void removeRecipe(PrimitiveIngredient a, PrimitiveIngredient b, ItemStack result)
 	{
-		List<IPrimitiveRecipe> recipes = new ArrayList<IPrimitiveRecipe>(registry);
+		List<IPrimitiveRecipe> recipes = getRecipeForStack(result);
 		for (int i = 0; i < recipes.size(); i++)
 		{
 			IPrimitiveRecipe r = recipes.get(i);
@@ -84,6 +84,7 @@ public class RecipeRegistry
 	{
 		registry.remove(recipe);
 		resourceRegistry.remove(recipe.getRegistryName());
+		getRecipeForStack(recipe.getResult()).remove(recipe);
 	}
 
 	public static PrimitiveIngredient get(ItemStack stack)
@@ -135,12 +136,6 @@ public class RecipeRegistry
 					continue;
 
 				NonNullList<Ingredient> ingredients = recipe.getIngredients();
-
-				// ItemStack output = recipe.getRecipeOutput();
-				// if(!output.isEmpty() && output.getItem() ==
-				// Item.getByNameOrId("minecraft:bed") && output.getItemDamage()
-				// == 0)
-				// System.out.println("OOF");
 
 				if (ingredients.size() == 2)
 				{
