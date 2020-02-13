@@ -326,7 +326,7 @@ public class RenderEvents
 
 	private static boolean isPressed(KeyBinding key)
 	{
-		return key.getKeyCode() > 0 && Keyboard.isKeyDown(key.getKeyCode());
+		return Keyboard.getKeyCount() <= key.getKeyCode() ? key.isKeyDown() : key.getKeyCode() > 0 && Keyboard.isKeyDown(key.getKeyCode());
 	}
 
 	private static boolean isInBounds(int mouseX, int mouseY, int x, int y)
