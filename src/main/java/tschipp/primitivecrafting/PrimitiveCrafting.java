@@ -57,7 +57,7 @@ public class PrimitiveCrafting
 	@EventHandler
     public void onFingerprintViolation(FMLFingerprintViolationEvent event) {
         
-//		LOGGER.error("WARNING! Invalid fingerprint detected! The file " + event.getSource().getName() + " may have been tampered with! If you didn't download the file from https://minecraft.curseforge.com/projects/primitive-crafting or through any kind of mod launcher, immediately delete the file and re-download it from https://minecraft.curseforge.com/projects/primitive-crafting");
+		LOGGER.error("WARNING! Invalid fingerprint detected! The file " + event.getSource().getName() + " may have been tampered with! If you didn't download the file from https://minecraft.curseforge.com/projects/primitive-crafting or through any kind of mod launcher, immediately delete the file and re-download it from https://minecraft.curseforge.com/projects/primitive-crafting");
     }
 	
 }
