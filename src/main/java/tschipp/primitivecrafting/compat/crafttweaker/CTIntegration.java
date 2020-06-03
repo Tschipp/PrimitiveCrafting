@@ -1,5 +1,7 @@
 package tschipp.primitivecrafting.compat.crafttweaker;
 
+import java.util.List;
+
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.item.IIngredient;
 import crafttweaker.api.item.IItemStack;
@@ -143,10 +145,9 @@ public class CTIntegration
 		if (output != null)
 		{
 			ItemStack stack = CraftTweakerMC.getItemStack(output);
-			for (IPrimitiveRecipe recipe : RecipeRegistry.getRecipeForStack(stack))
-			{
-				RecipeRegistry.remove(recipe);
-			}
+			List<IPrimitiveRecipe> recipes = RecipeRegistry.getRecipeForStack(stack);
+			
+			RecipeRegistry.removeAll(stack, recipes);
 		}
 	}
 

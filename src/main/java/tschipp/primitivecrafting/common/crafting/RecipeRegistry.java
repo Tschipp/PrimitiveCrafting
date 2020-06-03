@@ -2,16 +2,12 @@ package tschipp.primitivecrafting.common.crafting;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import com.google.common.collect.Lists;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -85,6 +81,13 @@ public class RecipeRegistry
 		registry.remove(recipe);
 		resourceRegistry.remove(recipe.getRegistryName());
 		getRecipeForStack(recipe.getResult()).remove(recipe);
+	}
+	
+	public static void removeAll(ItemStack forStack, Collection<IPrimitiveRecipe> recipe)
+	{
+		registry.removeAll(recipe);
+		resourceRegistry.values().removeAll(recipe);
+		getRecipeForStack(forStack).removeAll(recipe);
 	}
 
 	public static PrimitiveIngredient get(ItemStack stack)
