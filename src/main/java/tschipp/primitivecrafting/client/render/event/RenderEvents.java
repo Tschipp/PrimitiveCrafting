@@ -1,7 +1,6 @@
 package tschipp.primitivecrafting.client.render.event;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.lwjgl.input.Keyboard;
@@ -28,6 +27,7 @@ import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import net.minecraftforge.fml.client.config.GuiUtils;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -44,7 +44,7 @@ public class RenderEvents
 	private static CraftingAction craftingAction;
 	private static CraftingAction lastCrafted;
 	private static boolean crafted = false;
-	
+
 	// Cycle
 	private static boolean hasSelected = false;
 	private static IPrimitiveRecipe nextRecipe = null;
@@ -52,20 +52,23 @@ public class RenderEvents
 
 	// Handles Crafting
 	@SideOnly(Side.CLIENT)
-	@SubscribeEvent
+	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void onGuiClick(GuiScreenEvent.MouseInputEvent.Pre event)
 	{
 		GuiScreen gui = event.getGui();
 
-		if (gui instanceof GuiContainer && isPressed(PrimitiveKeybinds.showRecipe) && Mouse.getEventButton() == 0 && Mouse.getEventButtonState())
+
+		if (gui instanceof GuiContainer && isPressed(PrimitiveKeybinds.showRecipe) && Mouse.getEventButton() == 0)
 		{
 			GuiContainer container = (GuiContainer) gui;
 			Slot slotBelow = container.getSlotUnderMouse();
 			EntityPlayer player = Minecraft.getMinecraft().player;
 			ItemStack held = player.inventory.getItemStack();
 
+
 			if (slotBelow != null && slotBelow.getHasStack() && !slotBelow.getStack().isEmpty() && slotBelow.inventory == player.inventory && !held.isEmpty())
 			{
+
 				if (craftingAction != null && craftingAction.getSlot() == slotBelow && !cycle && !hasSelected)
 				{
 					boolean craftAll = false;
@@ -73,15 +76,20 @@ public class RenderEvents
 					if (isPressed(PrimitiveKeybinds.craftStack))
 						craftAll = true;
 
-					craftingAction.craft(held, slotBelow.getStack(), craftAll, slotBelow.getSlotIndex());
+
+					if (craftAll ? true : Mouse.isButtonDown(0))
+						craftingAction.craft(held, slotBelow.getStack(), craftAll, slotBelow.getSlotIndex());
+
 					event.setCanceled(true);
 					crafted = true;
+
 					return;
 				}
 			}
 		}
 
 		if (hasSelected || crafted)
+
 		{
 			event.setCanceled(true);
 			crafted = false;
@@ -199,27 +207,27 @@ public class RenderEvents
 					ItemStack b;
 					ItemStack result = recipe.getResult();
 
+					boolean swap = false;
 					if (recipe.getA().test(held))
 					{
 						a = held.copy();
-						a.setCount(recipe.getA().count);
 						b = stackUnder.copy();
-						b.setCount(recipe.getB().count);
 					} else
 					{
 						a = stackUnder.copy();
-						a.setCount(recipe.getA().count);
 						b = held.copy();
-						b.setCount(recipe.getB().count);
+						swap = true;
 					}
+
+					a.setCount(recipe.getA().count);
+					b.setCount(recipe.getB().count);
 
 					if (isPressed(PrimitiveKeybinds.craftStack))
 					{
 						int[] amountCrafted = CraftingAction.getTimesCrafted(held, stackUnder, recipe);
-						a.setCount(amountCrafted[1]);
-						b.setCount(amountCrafted[2]);
+						a.setCount(swap ? amountCrafted[2] : amountCrafted[1]);
+						b.setCount(swap ? amountCrafted[1] : amountCrafted[2]);
 						result.setCount(result.getCount() * amountCrafted[0]);
-
 					}
 
 					render.renderItemAndEffectIntoGUI(a, x, y);
