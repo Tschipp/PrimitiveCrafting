@@ -19,6 +19,7 @@ import tschipp.primitivecrafting.common.crafting.RecipeRegistry;
 public class Craft implements IMessage, IMessageHandler<Craft, IMessage>
 {
 
+	public ItemStack held;
 	public int slot;
 	public IPrimitiveRecipe recipe;
 	
@@ -26,10 +27,11 @@ public class Craft implements IMessage, IMessageHandler<Craft, IMessage>
 	{
 	}
 	
-	public Craft(int slot, IPrimitiveRecipe recipe)
+	public Craft(ItemStack held, IPrimitiveRecipe recipe, int slot)
 	{
-		this.slot = slot;
 		this.recipe = recipe;
+		this.held = held;
+		this.slot = slot;
 	}
 
 	@Override
@@ -44,10 +46,12 @@ public class Craft implements IMessage, IMessageHandler<Craft, IMessage>
 			@Override
 			public void run()
 			{								
-				ItemStack held = player.inventory.getItemStack();
+//				ItemStack held = message.held;
+				ItemStack held = message.held;
+//				player.inventory.setItemStack(held);
 				ItemStack under = player.inventory.getStackInSlot(message.slot);
-				
 				message.recipe.craft(held, under, player, held, message.slot);
+				player.inventory.setItemStack(held);
 			}
 		});
 
@@ -57,15 +61,17 @@ public class Craft implements IMessage, IMessageHandler<Craft, IMessage>
 	@Override
 	public void fromBytes(ByteBuf buf)
 	{
-		this.slot = buf.readInt();
+		this.held = ByteBufUtils.readItemStack(buf);
 		this.recipe = RecipeRegistry.getRecipe(new ResourceLocation(ByteBufUtils.readUTF8String(buf)));
+		this.slot = buf.readInt();
 	}
 
 	@Override
 	public void toBytes(ByteBuf buf)
 	{
-		buf.writeInt(slot);
+		ByteBufUtils.writeItemStack(buf, held);
 		ByteBufUtils.writeUTF8String(buf, recipe.getRegistryName().toString());
+		buf.writeInt(slot);
 	}
 
 }

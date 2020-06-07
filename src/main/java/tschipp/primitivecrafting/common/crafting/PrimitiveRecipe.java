@@ -64,7 +64,7 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 		if (newA != null && newB != null && !newA.isEmpty() && !newB.isEmpty())
 		{
 			getCraftingResult(newA, newB, player, PrimitiveRecipe.areStacksEqual(newA, hoverStack) ? true : false, slot);
-
+			
 			addItem(player, getResult());
 		}
 	}
@@ -181,9 +181,10 @@ public class PrimitiveRecipe implements IPrimitiveRecipe
 
 	public static void addItem(EntityPlayer player, ItemStack stack)
 	{
-		if (player != null && !player.world.isRemote)
+		if(player != null && !player.world.isRemote)
 		{
-			PrimitiveCrafting.network.sendToServer(new AddItem(stack));
+			if (!player.inventory.addItemStackToInventory(stack))
+				player.dropItem(stack, false);
 		}
 	}
 

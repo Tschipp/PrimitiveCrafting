@@ -46,11 +46,11 @@ public class CraftingAction
 		{
 			if (currentRecipe.isValid(held, inventoryStack))
 			{
+				// Server
+				PrimitiveCrafting.network.sendToServer(new Craft(held, currentRecipe, slot));
+				
 				// Client
 				currentRecipe.craft(held, inventoryStack, Minecraft.getMinecraft().player, held, slot);
-
-				// Server
-				PrimitiveCrafting.network.sendToServer(new Craft(slot, currentRecipe));
 			} else
 				break;
 		}

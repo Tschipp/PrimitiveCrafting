@@ -41,8 +41,6 @@ public class PrimitiveIngredient
 	{
 		ItemStack[] stacks = ingredient.getMatchingStacks();
 		
-
-		
 		
 		for (int i = 0; i < stacks.length; i++)
 		{
