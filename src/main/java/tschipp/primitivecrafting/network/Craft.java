@@ -46,12 +46,9 @@ public class Craft implements IMessage, IMessageHandler<Craft, IMessage>
 			@Override
 			public void run()
 			{								
-//				ItemStack held = message.held;
-				ItemStack held = message.held;
-//				player.inventory.setItemStack(held);
+				ItemStack held = player.isCreative() ? message.held : player.inventory.getItemStack();
 				ItemStack under = player.inventory.getStackInSlot(message.slot);
 				message.recipe.craft(held, under, player, held, message.slot);
-				player.inventory.setItemStack(held);
 			}
 		});
 

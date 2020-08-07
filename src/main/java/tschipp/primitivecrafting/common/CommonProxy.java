@@ -11,7 +11,6 @@ import tschipp.primitivecrafting.PrimitiveCrafting;
 import tschipp.primitivecrafting.common.crafting.RecipeRegistry;
 import tschipp.primitivecrafting.common.event.CommonEvents;
 import tschipp.primitivecrafting.compat.gamestages.GamestageEvents;
-import tschipp.primitivecrafting.network.AddItem;
 import tschipp.primitivecrafting.network.Craft;
 
 public class CommonProxy
@@ -22,8 +21,7 @@ public class CommonProxy
 		PrimitiveCrafting.network = NetworkRegistry.INSTANCE.newSimpleChannel("PrimitiveCrafting");
 
 		PrimitiveCrafting.network.registerMessage(Craft.class, Craft.class, 0, Side.SERVER);
-		PrimitiveCrafting.network.registerMessage(AddItem.class, AddItem.class, 1, Side.SERVER);
-
+	
 		MinecraftForge.EVENT_BUS.register(new CommonEvents());
 
 		if (Loader.isModLoaded("gamestages"))

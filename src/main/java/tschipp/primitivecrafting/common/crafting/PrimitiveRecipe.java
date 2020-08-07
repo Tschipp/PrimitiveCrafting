@@ -5,8 +5,6 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import tschipp.primitivecrafting.PrimitiveCrafting;
-import tschipp.primitivecrafting.network.AddItem;
 
 public class PrimitiveRecipe implements IPrimitiveRecipe
 {

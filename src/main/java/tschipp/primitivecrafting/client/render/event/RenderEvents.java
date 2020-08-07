@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
@@ -65,10 +66,9 @@ public class RenderEvents
 			EntityPlayer player = Minecraft.getMinecraft().player;
 			ItemStack held = player.inventory.getItemStack();
 
-
 			if (slotBelow != null && slotBelow.getHasStack() && !slotBelow.getStack().isEmpty() && slotBelow.inventory == player.inventory && !held.isEmpty())
 			{
-
+				
 				if (craftingAction != null && craftingAction.getSlot() == slotBelow && !cycle && !hasSelected)
 				{
 					boolean craftAll = false;
